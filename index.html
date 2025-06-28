@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성신고등학교 양심우산 대여 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .status-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #1e3c72;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .rental-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .rental-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #1e3c72;
+        }
+
+        .rental-item.overdue {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .overdue-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            float: right;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .admin-controls .btn {
+            width: auto;
+            flex: 1;
+        }
+
+        #passwordChangeForm {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1001;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">연결 중...</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🌂 성신고등학교 양심우산 대여 시스템</h1>
+            <p>비오는 날, 당신을 위한 우산</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-number" id="stockCount">-</div>
+                <div>보유 재고</div>
+            </div>
+            <div class="status-item">
+                <div class="status-number" id="rentedCount">-</div>
+                <div>대여 중</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('rental')">우산 대여</button>
+            <button class="tab" onclick="showTab('return')">우산 반납</button>
+            <button class="tab" onclick="showTab('admin')">관리자</button>
+        </div>
+
+        <!-- 대여 탭 -->
+        <div id="rental" class="tab-content active">
+            <h2>우산 대여하기</h2>
+            <form id="rentalForm">
+                <div class="form-group">
+                    <label for="studentId">학번</label>
+                    <input type="text" id="studentId" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentName">이름</label>
+                    <input type="text" id="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">연락처</label>
+                    <input type="text" id="phoneNumber" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreementCheck" required>
+                    <label for="agreementCheck">대여 약관에 동의합니다 (24시간 내 반납)</label>
+                </div>
+                <button type="submit" class="btn" id="rentalBtn">우산 대여하기</button>
+            </form>
+            <div id="rentalMessage"></div>
+        </div>
+
+        <!-- 반납 탭 -->
+        <div id="return" class="tab-content">
+            <h2>우산 반납하기</h2>
+            <form id="returnForm">
+                <div class="form-group">
+                    <label for="returnStudentId">학번</label>
+                    <input type="text" id="returnStudentId" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnStudentName">이름</label>
+                    <input type="text" id="returnStudentName" required>
+                </div>
+                <button type="submit" class="btn">우산 반납하기</button>
+            </form>
+            <div id="returnMessage"></div>
+        </div>
+
+        <!-- 관리자 탭 -->
+        <div id="admin" class="tab-content">
+            <div id="adminLogin">
+                <h2>관리자 로그인</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="adminPassword">관리자 비밀번호</label>
+                        <input type="password" id="adminPassword" required>
+                    </div>
+                    <button type="submit" class="btn">로그인</button>
+                </form>
+                <div id="loginMessage"></div>
+            </div>
+
+            <div id="adminPanel" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>관리자 패널</h2>
+                    <button class="btn btn-secondary" onclick="logout()">로그아웃</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stockInput">재고 수량</label>
+                    <input type="number" id="stockInput" min="0">
+                </div>
+                
+                <div class="admin-controls">
+                    <button class="btn" onclick="updateStock()">재고 업데이트</button>
+                    <button class="btn btn-secondary" onclick="showPasswordChange()">비밀번호 변경</button>
+                    <button class="btn btn-danger" onclick="clearAllRentals()">모든 대여 초기화</button>
+                </div>
+
+                <div id="passwordChangeForm">
+                    <h3>비밀번호 변경</h3>
+                    <div class="form-group">
+                        <label for="newPassword">새 비밀번호</label>
+                        <input type="password" id="newPassword" required>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" onclick="changePassword()">변경</button>
+                        <button class="btn btn-secondary" onclick="hidePasswordChange()">취소</button>
+                    </div>
+                </div>
+
+                <div id="adminMessage"></div>
+
+                <h3>대여 현황</h3>
+                <div id="rentalListContainer" class="rental-list">
+                    <div class="loading">대여 현황을 불러오는 중...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR 코드 모달 -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <h3>대여 완료!</h3>
+            <p>QR 코드를 저장해주세요</p>
+            <canvas id="qrCanvas" style="margin: 20px 0;"></canvas>
+            <button class="btn" onclick="closeQRModal()">확인</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase 모듈 import
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, remove, onValue, off } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase 설정 (실제 프로젝트에서는 환경변수로 관리하세요)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjAtal2QPs1af1SUMfvTMWKrcR5lpACQg",
+            authDomain: "sungshin-9a919.firebaseapp.com",
+            databaseURL: "https://sungshin-9a919-default-rtdb.firebaseio.com",
+            projectId: "sungshin-9a919",
+            storageBucket: "sungshin-9a919.firebasestorage.app",
+            messagingSenderId: "411958922821",
+            appId: "1:411958922821:web:0519681019441110f49d2c"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // 전역 변수로 설정하여 다른 스크립트에서 접근 가능하게 함
+        window.firebaseApp = app;
+        window.firebaseDatabase = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+        window.firebaseOff = off;
+    </script>
+
+    <!-- QR 코드 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <script>
+        // 앱 상태 관리
+        let appState = {
+            stock: 0,
+            rentals: {},
+            adminPassword: 'admin123',
+            isAdminLoggedIn: false,
+            isConnected: false
+        };
+
+        // Firebase 참조들
+        let rentalsRef, stockRef, adminPassRef;
+
+        // Firebase 초기화 대기
+        function initializeFirebase() {
+            if (window.firebaseDatabase) {
+                rentalsRef = window.firebaseRef(window.firebaseDatabase, "rentals");
+                stockRef = window.firebaseRef(window.firebaseDatabase, "stock");
+                adminPassRef = window.firebaseRef(window.firebaseDatabase, "adminPassword");
+                
+                loadData();
+                updateConnectionStatus(true);
+            } else {
+                setTimeout(initializeFirebase, 100);
+            }
+        }
+
+        // 연결 상태 업데이트
+        function updateConnectionStatus(connected) {
+            appState.isConnected = connected;
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = 'Firebase 연결됨';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = 'Firebase 연결 끊김';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        // Firebase에서 데이터 로드
+        function loadData() {
+            try {
+                // 재고 실시간 감시
+                window.firebaseOnValue(stockRef, (snapshot) => {
+                    appState.stock = snapshot.val() || 10;
+                    updateDisplay();
+                }, (error) => {
+                    console.error('Stock data error:', error);
+                    updateConnectionStatus(false);
+                });
+
+                // 대여 데이터 실시간 감시
+                window.firebaseOnValue(rentalsRef, (snapshot) => {
+                    appState.rentals = snapshot.val() || {};
+                    updateDisplay();
+                }, (error) => {
+                    console.error('Rentals data error:', error);
+                    updateConnectionStatus(false);
+                });
+
+                // 관리자 비밀번호 로드
+                window.firebaseGet(adminPassRef).then((snapshot) => {
+                    appState.adminPassword = snapshot.val() || 'admin123';
+                }).catch((error) => {
+                    console.error('Admin password load error:', error);
+                });
+
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Firebase에 데이터 저장
+        async function saveStock(newStock) {
+            try {
+                await window.firebaseSet(stockRef, newStock);
+                return true;
+            } catch (error) {
+                console.error('Save stock error:', error);
+                updateConnectionStatus(false);
+                throw error;
+            }
+        }
+
+        async function saveRental(rentalKey, rentalData) {
+            try {
+                const rentalNodeRef = window.firebaseRef(window.firebaseDatabase, `rentals/${rentalKey}`);
+                await window.firebaseSet(rentalNodeRef, rentalData);
+                return true;
+            } catch (error) {
+                console.error('Save rental error:', error);
+                updateConnectionStatus(false);
+                throw error;
+            }
+        }
+
+        async function removeRental(rentalKey) {
+            try {
+                const rentalNodeRef = window.firebaseRef(window.firebaseDatabase, `rentals/${rentalKey}`);
+                await window.firebaseRemove(rentalNodeRef);
+                return true;
+            } catch (error) {
+                console.error('Remove rental error:', error);
+                updateConnectionStatus(false);
+                throw error;
+            }
+        }
+
+        async function saveAdminPassword(newPassword) {
+            try {
+                await window.firebaseSet(adminPassRef, newPassword);
+                return true;
+            } catch (error) {
+                console.error('Save admin password error:', error);
+                updateConnectionStatus(false);
+                throw error;
+            }
+        }
+
+        async function clearAllRentals() {
+            if (confirm('정말로 모든 대여 정보를 초기화하시겠습니까?')) {
+                try {
+                    await window.firebaseSet(rentalsRef, null);
+                    await saveStock(10); // 기본 재고로 복원
+                    showMessage('adminMessage', '모든 대여 정보가 초기화되었습니다.', true);
+                } catch (error) {
+                    showMessage('adminMessage', '초기화 실패: ' + error.message, false);
+                }
+            }
+        }
+
+        // 화면 업데이트
+        function updateDisplay() {
+            document.getElementById('stockCount').textContent = appState.stock;
+            document.getElementById('rentedCount').textContent = Object.keys(appState.rentals).length;
+            
+            const stockInput = document.getElementById('stockInput');
+            if (stockInput) {
+                stockInput.value = appState.stock;
+            }
+
+            const rentalBtn = document.getElementById('rentalBtn');
+            if (appState.stock <= 0) {
+                rentalBtn.disabled = true;
+                rentalBtn.textContent = '재고 없음';
+            } else {
+                rentalBtn.disabled = false;
+                rentalBtn.textContent = '우산 대여하기';
+            }
+
+            if (appState.isAdminLoggedIn) {
+                updateRentalList();
+            }
+        }
+
+        // 대여 목록 업데이트
+        function updateRentalList() {
+            const rentalList = document.getElementById('rentalListContainer');
+            const rentals = Object.entries(appState.rentals);
+            
+            if (rentals.length === 0) {
+                rentalList.innerHTML = '<p style="text-align:center; color:#666; padding:2rem;">현재 대여 중인 우산이 없습니다.</p>';
+                return;
+            }
+
+            rentalList.innerHTML = '';
+            rentals.forEach(([key, rental]) => {
+                const rentedAt = new Date(rental.rentedAt);
+                const now = new Date();
+                const isOverdue = now - rentedAt > 1000 * 60 * 60 * 24;
+
+                const div = document.createElement('div');
+                div.className = `rental-item ${isOverdue ? 'overdue' : ''}`;
+                div.innerHTML = `
+                    <div class="rental-info">
+                        <h3>${rental.studentName} (${rental.studentId})</h3>
+                        <p>연락처: ${rental.phoneNumber}</p>
+                        <p>대여일시: ${rentedAt.toLocaleString()}</p>
+                        <p>대여 키: ${key}</p>
+                    </div>
+                    ${isOverdue ? '<span class="overdue-badge">연체</span>' : ''}
+                `;
+                rentalList.appendChild(div);
+            });
+        }
+
+        // 탭 전환
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 메시지 표시
+        function showMessage(targetId, message, isSuccess) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = `<div class="message ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+            setTimeout(() => el.innerHTML = '', 5000);
+        }
+
+        // QR 코드 생성
+        function generateQR(studentId, studentName, phoneNumber) {
+            const qr = new QRious({
+                element: document.getElementById('qrCanvas'),
+                value: `학번: ${studentId}\n이름: ${studentName}\n연락처: ${phoneNumber}\n대여일시: ${new Date().toLocaleString()}`,
+                size: 200
+            });
+            document.getElementById('qrModal').style.display = 'flex';
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        // 관리자 함수들
+        function logout() {
+            appState.isAdminLoggedIn = false;
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        async function updateStock() {
+            const newStock = parseInt(document.getElementById('stockInput').value, 10);
+            if (!isNaN(newStock) && newStock >= 0) {
+                try {
+                    await saveStock(newStock);
+                    showMessage('adminMessage', '재고가 업데이트되었습니다.', true);
+                } catch (error) {
+                    showMessage('adminMessage', '재고 업데이트 실패: ' + error.message, false);
+                }
+            } else {
+                showMessage('adminMessage', '유효한 재고 수를 입력하세요.', false);
+            }
+        }
+
+        function showPasswordChange() {
+            document.getElementById('passwordChangeForm').style.display = 'block';
+        }
+
+        function hidePasswordChange() {
+            document.getElementById('passwordChangeForm').style.display = 'none';
+            document.getElementById('newPassword').value = '';
+        }
+
+        async function changePassword() {
+            const newPass = document.getElementById('newPassword').value;
+            if (newPass.length < 4) {
+                showMessage('adminMessage', '비밀번호는 최소 4자 이상이어야 합니다.', false);
+                return;
+            }
+            try {
+                await saveAdminPassword(newPass);
+                appState.adminPassword = newPass;
+                showMessage('adminMessage', '비밀번호가 변경되었습니다.', true);
+                hidePasswordChange();
+            } catch (error) {
+                showMessage('adminMessage', '비밀번호 변경 실패: ' + error.message, false);
+            }
+        }
+
+        // 전역 함수로 설정
+        window.showTab = showTab;
+        window.logout = logout;
+        window.updateStock = updateStock;
+        window.showPasswordChange = showPasswordChange;
+        window.hidePasswordChange = hidePasswordChange;
+        window.changePassword = changePassword;
+        window.closeQRModal = closeQRModal;
+        window.clearAllRentals = clearAllRentals;
+
+        // 이벤트 리스너
+        document.getElementById('rentalForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!appState.isConnected) {
+                showMessage('rentalMessage', 'Firebase 연결이 끊어져 있습니다. 잠시 후 다시 시도해주세요.', false);
+                return;
+            }
+
+            const studentId = document.getElementById('studentId').value.trim();
+            const studentName = document.getElementById('studentName').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const agreement = document.getElementById('agreementCheck').checked;
+
+            if (!studentId || !studentName || !phoneNumber || !agreement) {
+                showMessage('rentalMessage', '모든 항목을 입력하고 동의해야 합니다.', false);
+                return;
+            }
+
+            if (appState.stock <= 0) {
+                showMessage('rentalMessage', '현재 재고가 없습니다.', false);
+                return;
+            }
+
+            // 중복 대여 체크
+            const isDuplicate = Object.values(appState.rentals).some(rental => 
+                rental.studentId === studentId || 
+                (rental.studentName === studentName && rental.phoneNumber === phoneNumber)
+            );
+
+            if (isDuplicate) {
+                showMessage('rentalMessage', '이미 대여 중인 학생입니다.', false);
+                return;
+            }
+
+            try {
+                const rentalKey = `${studentId}_${Date.now()}`;
+                const rentalData = {
+                    studentId,
+                    studentName,
+                    phoneNumber,
+                    rentedAt: new Date().toISOString()
+                };
+
+                await saveRental(rentalKey, rentalData);
+                await saveStock(appState.stock - 1);
+                
+                showMessage('rentalMessage', '대여 완료! QR 코드를 확인하세요.', true);
+                generateQR(studentId, studentName, phoneNumber);
+                document.getElementById('rentalForm').reset();
+            } catch (error) {
+                showMessage('rentalMessage', '대여 실패: ' + error.message, false);
+            }
+        });
+
+        document.getElementById('returnForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!appState.isConnected) {
+                showMessage('returnMessage', 'Firebase 연결이 끊어져 있습니다. 잠시 후 다시 시도해주세요.', false);
+                return;
+            }
+
+            const studentId = document.getElementById('returnStudentId').value.trim();
+            const studentName = document.getElementById('returnStudentName').value.trim();
+
+            let foundKey = null;
+            Object.entries(appState.rentals).forEach(([key, rental]) => {
+                if (rental.studentId === studentId && rental.studentName === studentName) {
+                    foundKey = key;
+                }
+            });
+
+            if (foundKey) {
+                try {
+                    await removeRental(foundKey);
+                    await saveStock(appState.stock + 1);
+                    showMessage('returnMessage', '반납 완료! 감사합니다.', true);
+                    document.getElementById('returnForm').reset();
+                } catch (error) {
+                    showMessage('returnMessage', '반납 실패: ' + error.message, false);
+                }
+            } else {
+                showMessage('returnMessage', '일치하는 대여 정보가 없습니다.', false);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+
+            if (password === appState.adminPassword) {
+                appState.isAdminLoggedIn = true;
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                updateRentalList();
+                showMessage('loginMessage', '관리자 로그인 성공!', true);
+            } else {
+                showMessage('loginMessage', '비밀번호가 틀렸습니다.', false);
+            }
+        });
+
+        // 앱 초기화
+        window.addEventListener('load', function() {
+            initializeFirebase();
+        });
+
+        // 페이지 언로드 시 Firebase 리스너 정리
+        window.addEventListener('beforeunload', function() {
+            if (rentalsRef) window.firebaseOff(rentalsRef);
+            if (stockRef) window.firebaseOff(stockRef);
+        });
+
+        // 네트워크 상태 모니터링
+        window.addEventListener('online', function() {
+            console.log('네트워크 연결됨');
+            if (window.firebaseDatabase) {
+                loadData();
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            console.log('네트워크 연결 끊김');
+            updateConnectionStatus(false);
+        });
+    </script>
+</body>
+</html>
